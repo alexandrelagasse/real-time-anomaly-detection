@@ -1,60 +1,56 @@
 # Détection d'Anomalies en Temps Réel - Transactions Bancaires
 
-Un système complet de détection d'anomalies en temps réel pour les transactions bancaires, utilisant une architecture MLOps moderne et déployable gratuitement.
+Un prototype de système de détection d'anomalies pour transactions bancaires utilisant Apache Spark et différents algorithmes de machine learning.
 
 ## Objectifs du Projet
 
-- **Détection d'anomalies** sur transactions bancaires en temps réel
-- **Architecture MLOps complète** avec tracking, monitoring et déploiement
-- **Stack 100% gratuite** déployable en local et cloud
-- **UX professionnelle** avec dashboard et monitoring en live
+- **Expérimentation** avec différents modèles de détection d'anomalies
+- **Streaming en temps réel** avec Apache Spark Structured Streaming
+- **Comparaison de modèles** pour identifier les meilleures performances
+- **Pipeline de données** pour le traitement de transactions
 
 ## Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Génération    │    │   Streaming     │    │   Traitement    │
-│   de Flux       │───▶│   Kafka         │───▶│   PySpark       │
-│   (Python)      │    │   (Docker)      │    │   Structured    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                                        │
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Monitoring    │    │   ML Tracking   │    │   Modèle ML     │
-│   Grafana       │◀───│   MLflow        │◀───│   Isolation     │
-│   + InfluxDB    │    │   (Docker)      │    │   Forest        │
+│   Génération    │    │   Streaming     │    │   Comparaison   │
+│   Transactions  │───▶│   Apache Spark  │───▶│   de Modèles    │
+│   (Python)      │    │   Structured    │    │   (ML)          │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
 ## Stack Technique
 
-| Composant | Technologie | Justification |
-|-----------|------------|---------------|
-| **Génération de flux** | Python + Faker + Confluent-Kafka | Léger et gratuit |
-| **Streaming/Ingestion** | Apache Kafka (Docker) | Standard industrie |
-| **Traitement temps réel** | PySpark Structured Streaming | Pro, scalable |
-| **Modèle de détection** | Isolation Forest (scikit-learn) | Robuste, simple |
-| **ML Tracking/MLOps** | MLflow (Docker) | Gratuit, complet |
-| **Monitoring dashboard** | Grafana + InfluxDB (Docker) | Visualisation en live |
-| **Orchestration** | Docker Compose | Tout en local, reproductible |
-| **Cloud (optionnel)** | Render/Railway | Hébergement gratuit |
-| **CI/CD (optionnel)** | GitHub Actions | Tests automatiques |
+| Composant | Technologie | Usage |
+|-----------|------------|-------|
+| **Traitement streaming** | Apache Spark (PySpark) | Traitement temps réel |
+| **Génération de données** | Python + Faker | Simulation de transactions |
+| **Modèles ML** | scikit-learn | Détection d'anomalies |
+| **Orchestration** | Docker + Scripts shell | Démarrage services |
+| **Exploration** | Jupyter Notebooks | Analyse exploratoire |
 
 ## Structure du Projet
 
 ```
 real-time-anomaly-detection/
 ├── src/
-│   ├── data_generator/     # Génération de flux de données
-│   ├── streaming/          # Traitement Kafka + PySpark
-│   ├── ml/                # Modèles et entraînement
-│   └── monitoring/        # Dashboard et alertes
-├── notebooks/             # Exploration et développement
-├── docker/               # Configurations Docker
-├── mlruns/              # Expériences MLflow
-├── data/                # Datasets et données
-├── requirements.txt      # Dépendances Python
-├── docker-compose.yml   # Orchestration complète
-└── README.md           # Documentation
+│   ├── compare_models.py    # Comparaison d'algorithmes ML
+│   ├── send_transaction.py  # Générateur de transactions
+│   └── spark_stream.py      # Pipeline Spark Streaming
+├── data/
+│   └── grep_data.py        # Utilitaires données
+├── notebooks/
+│   └── 01_eda_and_preprocessing.ipynb  # Analyse exploratoire
+├── models/                 # Modèles sauvegardés (vide)
+├── logs_sender.sh         # Script logs envoi
+├── logs_spark.sh          # Script logs Spark
+├── start_all.sh           # Démarrage complet
+├── start_spark.sh         # Démarrage Spark
+├── run_all.sh             # Exécution pipeline
+├── docker-compose.yml     # Services Docker
+├── Dockerfile             # Configuration container
+├── requirements.txt       # Dépendances Python
+└── README.md             # Documentation
 ```
 
 ## Installation et Démarrage
@@ -62,7 +58,7 @@ real-time-anomaly-detection/
 ### Prérequis
 - Docker et Docker Compose
 - Python 3.8+
-- Git
+- Apache Spark (inclus dans Docker)
 
 ### Installation Rapide
 
@@ -71,164 +67,134 @@ real-time-anomaly-detection/
 git clone <repository-url>
 cd real-time-anomaly-detection
 
-# Démarrer l'infrastructure complète
-docker-compose up -d
-
 # Installer les dépendances Python
 pip install -r requirements.txt
 
-# Lancer le système
-python src/main.py
+# Démarrer tous les services
+./start_all.sh
+
+# Ou lancer le pipeline complet
+./run_all.sh
 ```
 
-### Accès aux Services
+### Scripts Disponibles
 
-- **Grafana Dashboard**: http://localhost:3000
-- **MLflow Tracking**: http://localhost:5000
-- **Kafka UI**: http://localhost:8080
+- `./start_all.sh` - Démarre tous les services Docker
+- `./start_spark.sh` - Démarre uniquement Spark
+- `./run_all.sh` - Exécute le pipeline complet
+- `./logs_spark.sh` - Affiche les logs Spark
+- `./logs_sender.sh` - Affiche les logs d'envoi
 
 ## Configuration
 
-### Variables d'Environnement
+Le projet utilise Docker Compose pour orchestrer les services. La configuration principale se trouve dans `docker-compose.yml`.
 
-```bash
-# .env
-KAFKA_BOOTSTRAP_SERVERS=localhost:9092
-MLFLOW_TRACKING_URI=http://localhost:5000
-GRAFANA_URL=http://localhost:3000
-```
-
-### Configuration Docker
-
-```yaml
-# docker-compose.yml
-version: '3.8'
-services:
-  kafka:
-    image: confluentinc/cp-kafka:latest
-    # ... configuration Kafka
-  
-  mlflow:
-    image: python:3.8
-    # ... configuration MLflow
-  
-  grafana:
-    image: grafana/grafana:latest
-    # ... configuration Grafana
-```
+### Services Docker
+- **Spark Master/Worker** - Traitement distribué
+- **Jupyter** - Notebooks d'exploration
+- **Application Python** - Pipeline de données
 
 ## Fonctionnalités
 
+### Génération de Données
+- **Simulation de transactions** bancaires réalistes
+- **Flux continu** de données avec `send_transaction.py`
+- **Patterns normaux et anomalies** intégrés
+
+### Traitement Streaming
+- **Apache Spark Structured Streaming** 
+- **Pipeline temps réel** avec `spark_stream.py`
+- **Traitement par micro-batches**
+
 ### Détection d'Anomalies
-- **Isolation Forest** pour détection non-supervisée
-- **Seuils adaptatifs** basés sur l'historique
-- **Alertes en temps réel** via Kafka
-
-### Monitoring
-- **Dashboard Grafana** avec métriques en live
-- **Tracking MLflow** pour les expériences
-- **Alertes automatiques** sur anomalies
-
-### Pipeline MLOps
-- **Entraînement automatique** des modèles
-- **Versioning** des modèles avec MLflow
-- **Déploiement continu** via Docker
+- **Comparaison de modèles** ML avec `compare_models.py`
+- **Algorithmes multiples** (Isolation Forest, One-Class SVM, etc.)
+- **Évaluation de performances** automatisée
 
 ## Utilisation
 
-### Génération de Données
+### Génération de Transactions
 
-```python
-from src.data_generator import TransactionGenerator
-
-# Générer des transactions en temps réel
-generator = TransactionGenerator()
-generator.start_streaming()
+```bash
+# Lancer la génération de données
+python src/send_transaction.py
 ```
 
-### Détection d'Anomalies
+### Pipeline Spark Streaming
 
-```python
-from src.ml.anomaly_detector import AnomalyDetector
-
-# Détecter les anomalies
-detector = AnomalyDetector()
-anomalies = detector.detect_anomalies(transaction_data)
+```bash
+# Démarrer le traitement en temps réel
+python src/spark_stream.py
 ```
 
-### Monitoring
+### Comparaison de Modèles
 
-```python
-from src.monitoring import MetricsCollector
-
-# Collecter les métriques
-collector = MetricsCollector()
-collector.log_metrics(predictions, actual)
+```bash
+# Comparer les algorithmes de détection
+python src/compare_models.py
 ```
 
-## Métriques et KPIs
+### Exploration des Données
 
-- **Précision de détection**: > 95%
-- **Latence de traitement**: < 100ms
-- **Throughput**: > 1000 transactions/sec
-- **Faux positifs**: < 2%
+```bash
+# Ouvrir Jupyter pour l'analyse
+docker-compose exec jupyter jupyter notebook
+# Puis ouvrir: notebooks/01_eda_and_preprocessing.ipynb
+```
+
+## Composants Principaux
+
+- **`send_transaction.py`** - Génère un flux de transactions simulées
+- **`spark_stream.py`** - Traite les données en streaming avec Spark
+- **`compare_models.py`** - Compare différents algorithmes ML
+- **Notebook EDA** - Analyse exploratoire et préprocessing
 
 ## Déploiement
 
 ### Local
 ```bash
+# Démarrer l'environnement complet
+./start_all.sh
+
+# Ou étape par étape
 docker-compose up -d
+./run_all.sh
 ```
 
-### Cloud (Render/Railway)
-```bash
-# Configuration automatique via docker-compose
-# Déploiement en un clic
-```
+## Développement
 
-## Tests
+Ce projet est un **prototype d'expérimentation** pour la détection d'anomalies. Il permet de :
 
-```bash
-# Tests unitaires
-python -m pytest tests/
+- Tester différents algorithmes de ML
+- Expérimenter avec Spark Streaming  
+- Analyser des données de transactions simulées
+- Comparer les performances des modèles
 
-# Tests d'intégration
-python -m pytest tests/integration/
+### Prochaines étapes possibles
 
-# Tests de performance
-python -m pytest tests/performance/
-```
+- Intégration avec une vraie source de données
+- Ajout de plus d'algorithmes de détection
+- Interface web pour visualiser les résultats
+- Système d'alertes en temps réel
+- Optimisation des performances
 
-## Documentation
+## Structure des Données
 
-- [Guide d'installation détaillé](docs/installation.md)
-- [Architecture technique](docs/architecture.md)
-- [API Reference](docs/api.md)
-- [Troubleshooting](docs/troubleshooting.md)
+Les transactions générées incluent :
+- ID utilisateur et marchand
+- Montant et devise
+- Coordonnées géographiques
+- Timestamp
+- Labels d'anomalies
 
-## Contribution
+## Technologies Utilisées
 
-1. Fork le projet
-2. Créer une branche feature (`git checkout -b feature/AmazingFeature`)
-3. Commit les changements (`git commit -m 'Add AmazingFeature'`)
-4. Push vers la branche (`git push origin feature/AmazingFeature`)
-5. Ouvrir une Pull Request
-
-## Licence
-
-Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
-
-## Auteur
-
-**Votre Nom** - [LinkedIn](https://linkedin.com/in/votre-profil) - [GitHub](https://github.com/votre-username)
-
-## Remerciements
-
-- [MLflow](https://mlflow.org/) pour le tracking ML
-- [Apache Kafka](https://kafka.apache.org/) pour le streaming
-- [Grafana](https://grafana.com/) pour le monitoring
-- [Docker](https://www.docker.com/) pour la containerisation
+- **Apache Spark** - Traitement distribué
+- **Python** - Logique métier et ML
+- **Docker** - Containerisation
+- **Jupyter** - Exploration de données
+- **scikit-learn** - Algorithmes ML
 
 ---
 
-**Star ce projet si il vous a été utile !**
+**Projet d'expérimentation en détection d'anomalies - 2025**

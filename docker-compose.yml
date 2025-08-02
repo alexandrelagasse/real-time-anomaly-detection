@@ -55,3 +55,14 @@ services:
     volumes:
       - ./:/opt/bitnami/spark/app
 
+  sender:
+    image: python:3.10-slim
+    depends_on:
+      - kafka
+      - spark-master
+    working_dir: /app
+    volumes:
+      - ./:/app
+    command: ["bash", "-c", "echo '⏳ Attente de Kafka et Spark...' && sleep 45 && echo '📦 Installation kafka-python...' && pip install kafka-python && echo '🚀 Démarrage générateur de transactions...' && python src/send_transaction.py"]
+    restart: "no"
+
